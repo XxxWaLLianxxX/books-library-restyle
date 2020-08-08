@@ -43,5 +43,10 @@ for id in range(1, 11):
         book_and_author = title_text.split('::')
         book = book_and_author[0].rstrip()
 
+        comments = []
+        texts = soup.find_all(class_='texts')
+        for comment in texts:
+            comments.append(comment.find(class_='black').text)
+
         download_txt(url_txt, book)
         download_image(book_image_link, image_name[-1])
