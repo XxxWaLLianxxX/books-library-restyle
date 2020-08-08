@@ -48,5 +48,11 @@ for id in range(1, 11):
         for comment in texts:
             comments.append(comment.find(class_='black').text)
 
+        genre_list = []
+        d_book = soup.find('div', id='content').find('span', class_='d_book')
+        genres = d_book.find_all('a')
+        for genre in genres:
+            genre_list.append(genre.text)
+
         download_txt(url_txt, book)
         download_image(book_image_link, image_name[-1])
