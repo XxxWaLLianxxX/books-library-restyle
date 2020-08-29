@@ -32,43 +32,47 @@ def download_image(url, filename, folder='images/'):
 
 
 books_info = []
-for page_number in range(1, 5):
+for page_number in range(1, 2):
     page_url = f'http://tululu.org/l55/{page_number}/'
     response = requests.get(page_url, allow_redirects=False)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
 
     if response.status_code != 302:
-        book_card = soup.find_all('table', class_='d_book')
+        book_card_selector = 'table.d_book'
+        book_card = soup.select(book_card_selector)
         for a in book_card:
-            book_id = a.find('a')['href']
+            book_id = a.select_one('a')['href']
             book_link = urljoin(page_url, book_id)
             response = requests.get(book_link, allow_redirects=False)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
-            table = soup.find('table', class_='d_book').find_all('a')
-            for id in table:
+            book_selector = 'table.d_book a'
+            book = soup.select(book_selector)
+            for id in book:
                 if 'txt' in id['href']:
                     url_txt = urljoin(template_url, id['href'])
 
-            title_tag = soup.find('div', id='content').h1
+            title_tag_selector = 'body div[id=content] h1'
+            title_tag = soup.select_one(title_tag_selector)
             title_text = title_tag.text
             title_and_author = title_text.split('::')
             title = title_and_author[0].rstrip()
             author = title_and_author[-1].lstrip()
 
-            book_image = soup.find(class_='bookimage').find('img')['src']
+            book_image = soup.select_one('div.bookimage img')['src']
             book_image_link = urljoin(page_url, book_image)
             image_name = book_image_link.split('/')
 
             comments = []
-            texts = soup.find_all(class_='texts')
+            texts = soup.select('.texts')
             for comment in texts:
-                comments.append(comment.find(class_='black').text)
+                if comment:
+                    comments.append(comment.select_one('.black').text)
 
             genre_list = []
-            d_book = soup.find('div', id='content').find('span', class_='d_book')
-            genres = d_book.find_all('a')
+            genres_selector = 'body div[id=content] span.d_book a'
+            genres = soup.select(genres_selector)
             for genre in genres:
                 genre_list.append(genre.text)
 
