@@ -4,6 +4,7 @@ from pathvalidate import sanitize_filename
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
+import argparse
 
 template_url = 'http://tululu.org'
 
@@ -31,8 +32,27 @@ def download_image(url, filename, folder='images/'):
     return path
 
 
+parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
+parser.add_argument(
+    "-sp",
+    "--start_page",
+    help="Номер первой скачиваемой страницы",
+    type=int,
+    default=1,
+)
+parser.add_argument(
+    "-ep",
+    "--end_page",
+    help="Номер последней скачиваемой страницы",
+    type=int,
+    default=1,
+)
+args = parser.parse_args()
+start_page = args.start_page
+end_page = args.end_page
+
 books_info = []
-for page_number in range(1, 2):
+for page_number in range(start_page, end_page + 1):
     page_url = f'http://tululu.org/l55/{page_number}/'
     response = requests.get(page_url, allow_redirects=False)
     response.raise_for_status()
