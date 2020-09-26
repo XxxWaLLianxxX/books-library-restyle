@@ -1,6 +1,6 @@
 import requests
 import os
-from pathvalidate import sanitize_filename
+from pathvalidate import sanitize_filename, sanitize_filepath
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
@@ -9,30 +9,31 @@ import argparse
 template_url = 'http://tululu.org'
 
 
-def download_txt(url, filename, folder='books/'):
+def download_txt(url, filename, folder):
     filename = sanitize_filename(filename)
-    folder = os.path.join(folder)
+    folder = sanitize_filepath(os.path.join(folder, 'books/'))
     response = requests.get(url)
     if response.encoding == 'utf-8':
         os.makedirs(folder, exist_ok=True)
-        path = f"{folder}{filename}.txt"
+        path = f"{folder}/{filename}.txt"
         with open(path, "w", encoding='utf-8') as book:
             book.write(response.text)
         return path
 
 
-def download_image(url, filename, folder='images/'):
+def download_image(url, filename, folder):
     filename = sanitize_filename(filename)
-    folder = os.path.join(folder)
+    folder = sanitize_filepath(os.path.join(folder, 'images/'))
     response = requests.get(url)
     os.makedirs(folder, exist_ok=True)
-    path = f"{folder}{filename}"
+    path = f"{folder}/{filename}"
     with open(path, "wb") as image:
         image.write(response.content)
     return path
 
 
 parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
+
 parser.add_argument(
     "-sp",
     "--start_page",
@@ -47,9 +48,40 @@ parser.add_argument(
     type=int,
     default=1,
 )
+parser.add_argument(
+    "-si",
+    "--skip_imgs",
+    help="Не скачивать картинки",
+    action="store_true",
+)
+parser.add_argument(
+    "-st",
+    "--skip_txt",
+    help="Не скачивать книги",
+    action="store_true",
+)
+parser.add_argument(
+    "-df",
+    "--dest_folder",
+    help="Путь к каталогу с результатами парсинга",
+    default="library/",
+)
+parser.add_argument(
+    "-jp",
+    "--json_path",
+    help="Указать свой путь к *.json файлу с результатами",
+)
+
 args = parser.parse_args()
 start_page = args.start_page
 end_page = args.end_page
+dest_folder = args.dest_folder
+json_path = args.json_path
+
+os.makedirs(dest_folder, exist_ok=True)
+
+if args.json_path:
+    os.makedirs(json_path, exist_ok=True)
 
 books_info = []
 for page_number in range(start_page, end_page + 1):
@@ -96,8 +128,15 @@ for page_number in range(start_page, end_page + 1):
             for genre in genres:
                 genre_list.append(genre.text)
 
-            book_path = download_txt(url_txt, title)
-            image_path = download_image(book_image_link, image_name[-1])
+            if args.skip_txt:
+                book_path = ''
+            else:
+                book_path = download_txt(url_txt, title, dest_folder)
+
+            if args.skip_imgs:
+                image_path = ''
+            else:
+                image_path = download_image(book_image_link, image_name[-1], dest_folder)
 
             book_info = {
                 'title': title,
@@ -109,5 +148,10 @@ for page_number in range(start_page, end_page + 1):
             }
             books_info.append(book_info)
 
-with open("books_info.json", "w") as json_file:
+if args.json_path:
+    json_file_path = sanitize_filepath(os.path.join(json_path, 'books_info.json'))
+else:
+    json_file_path = sanitize_filepath(os.path.join(dest_folder, 'books_info.json'))
+
+with open(json_file_path, "w") as json_file:
     json.dump(books_info, json_file, ensure_ascii=False)
