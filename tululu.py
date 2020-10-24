@@ -1,10 +1,12 @@
-import requests
-import os
-from pathvalidate import sanitize_filename, sanitize_filepath
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 import json
+import os
+
 import argparse
+import requests
+
+from bs4 import BeautifulSoup
+from pathvalidate import sanitize_filename, sanitize_filepath
+from urllib.parse import urljoin
 
 template_url = 'http://tululu.org'
 
