@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename, sanitize_filepath
 from urllib.parse import urljoin
 
-template_url = 'http://tululu.org'
+TEMPLATE_URL = 'https://tululu.org'
 
 
 def download_txt(url, filename, folder):
@@ -32,6 +32,7 @@ def download_image(url, filename, folder):
     file_path = f"{folder}/{filename}"
     with open(file_path, "wb") as image:
         image.write(response.content)
+    return file_path
 
 
 parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
@@ -88,24 +89,23 @@ if args.json_path:
 books_info = []
 for page_number in range(start_page, end_page + 1):
     page_url = f'http://tululu.org/l55/{page_number}/'
-    response = requests.get(page_url, allow_redirects=False)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'lxml')
-    return file_path
+        response = requests.get(page_url, allow_redirects=False, verify=False)
+        response.raise_for_status()
+        page_soup = BeautifulSoup(response.text, 'lxml')
 
         book_card_selector = 'table.d_book'
-        book_card = soup.select(book_card_selector)
-        for a in book_card:
-            book_id = a.select_one('a')['href']
+        book_cards = page_soup.select(book_card_selector)
+        for book_card in book_cards:
+            book_id = book_card.select_one('a')['href']
             book_link = urljoin(page_url, book_id)
             response = requests.get(book_link, allow_redirects=False, verify=False)
             response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'lxml')
+            book_soup = BeautifulSoup(response.text, 'lxml')
             book_selector = 'table.d_book a'
-            book = soup.select(book_selector)
+            book = book_soup.select(book_selector)
             for id in book:
                 if 'txt' in id['href']:
-                    url_txt = urljoin(template_url, id['href'])
+                    url_txt = urljoin(TEMPLATE_URL, id['href'])
 
             title_tag_selector = 'body div[id=content] h1'
             title_tag = soup.select_one(title_tag_selector)
@@ -119,14 +119,14 @@ for page_number in range(start_page, end_page + 1):
             image_name = book_image_link.split('/')
 
             comments = []
-            texts = soup.select('.texts')
+            texts = book_soup.select('.texts')
             for comment in texts:
                 if comment:
                     comments.append(comment.select_one('.black').text)
 
             genre_list = []
             genres_selector = 'body div[id=content] span.d_book a'
-            genres = soup.select(genres_selector)
+            genres = book_soup.select(genres_selector)
             for genre in genres:
                 genre_list.append(genre.text)
 
