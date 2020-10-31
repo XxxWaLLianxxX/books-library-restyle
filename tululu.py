@@ -35,60 +35,23 @@ def download_image(url, filename, folder):
     return file_path
 
 
-parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
+def pull_title_and_author(book_soup):
+    title_tag_selector = 'body div[id=content] h1'
+    title_tag = book_soup.select_one(title_tag_selector)
+    title_text = title_tag.text
+    title_and_author = title_text.split('::')
+    title = title_and_author[0].rstrip()
+    author = title_and_author[-1].lstrip()
+    return title, author
 
-parser.add_argument(
-    "-sp",
-    "--start_page",
-    help="Номер первой скачиваемой страницы",
-    type=int,
-    default=1,
-)
-parser.add_argument(
-    "-ep",
-    "--end_page",
-    help="Номер последней скачиваемой страницы",
-    type=int,
-    default=1,
-)
-parser.add_argument(
-    "-si",
-    "--skip_imgs",
-    help="Не скачивать картинки",
-    action="store_true",
-)
-parser.add_argument(
-    "-st",
-    "--skip_txt",
-    help="Не скачивать книги",
-    action="store_true",
-)
-parser.add_argument(
-    "-df",
-    "--dest_folder",
-    help="Путь к каталогу с результатами парсинга",
-    default="library/",
-)
-parser.add_argument(
-    "-jp",
-    "--json_path",
-    help="Указать свой путь к *.json файлу с результатами",
-)
 
-args = parser.parse_args()
-start_page = args.start_page
-end_page = args.end_page
-dest_folder = args.dest_folder
-json_path = args.json_path
+def pull_book_image(book_soup, page_url):
+    book_image = book_soup.select_one('div.bookimage img')['src']
+    book_image_link = urljoin(page_url, book_image)
+    image_name = book_image_link.split('/')
+    return book_image_link, image_name
 
-os.makedirs(dest_folder, exist_ok=True)
 
-if args.json_path:
-    os.makedirs(json_path, exist_ok=True)
-
-books_info = []
-for page_number in range(start_page, end_page + 1):
-    page_url = f'http://tululu.org/l55/{page_number}/'
         response = requests.get(page_url, allow_redirects=False, verify=False)
         response.raise_for_status()
         page_soup = BeautifulSoup(response.text, 'lxml')
@@ -107,16 +70,9 @@ for page_number in range(start_page, end_page + 1):
                 if 'txt' in id['href']:
                     url_txt = urljoin(TEMPLATE_URL, id['href'])
 
-            title_tag_selector = 'body div[id=content] h1'
-            title_tag = soup.select_one(title_tag_selector)
-            title_text = title_tag.text
-            title_and_author = title_text.split('::')
-            title = title_and_author[0].rstrip()
-            author = title_and_author[-1].lstrip()
+            title, author = pull_title_and_author(book_soup)
 
-            book_image = soup.select_one('div.bookimage img')['src']
-            book_image_link = urljoin(page_url, book_image)
-            image_name = book_image_link.split('/')
+            book_image_link, image_name = pull_book_image(book_soup, page_url)
 
             comments = []
             texts = book_soup.select('.texts')
