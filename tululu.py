@@ -14,19 +14,21 @@ template_url = 'http://tululu.org'
 def download_txt(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'books/'))
-    response = requests.get(url)
     if response.encoding == 'utf-8':
         os.makedirs(folder, exist_ok=True)
         path = f"{folder}/{filename}.txt"
         with open(path, "w", encoding='utf-8') as book:
             book.write(response.text)
         return path
+    response = requests.get(url, allow_redirects=False, verify=False)
+    response.raise_for_status()
 
 
 def download_image(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'images/'))
-    response = requests.get(url)
+    response = requests.get(url, allow_redirects=False, verify=False)
+    response.raise_for_status()
     os.makedirs(folder, exist_ok=True)
     path = f"{folder}/{filename}"
     with open(path, "wb") as image:
@@ -98,7 +100,7 @@ for page_number in range(start_page, end_page + 1):
         for a in book_card:
             book_id = a.select_one('a')['href']
             book_link = urljoin(page_url, book_id)
-            response = requests.get(book_link, allow_redirects=False)
+            response = requests.get(book_link, allow_redirects=False, verify=False)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
             book_selector = 'table.d_book a'
@@ -133,12 +135,18 @@ for page_number in range(start_page, end_page + 1):
             if args.skip_txt:
                 book_path = ''
             else:
-                book_path = download_txt(url_txt, title, dest_folder)
+                try:
+                    book_path = download_txt(url_txt, title, dest_folder)
+                except requests.exceptions.HTTPError:
+                    print(response.status_code)
 
             if args.skip_imgs:
                 image_path = ''
             else:
-                image_path = download_image(book_image_link, image_name[-1], dest_folder)
+                try:
+                    image_path = download_image(book_image_link, image_name[-1], dest_folder)
+                except requests.exceptions.HTTPError:
+                    print(response.status_code)
 
             book_info = {
                 'title': title,
