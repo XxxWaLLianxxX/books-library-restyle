@@ -14,13 +14,13 @@ template_url = 'http://tululu.org'
 def download_txt(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'books/'))
-        os.makedirs(folder, exist_ok=True)
-        path = f"{folder}/{filename}.txt"
-        with open(path, "w", encoding='utf-8') as book:
-            book.write(response.text)
-        return path
     response = requests.get(url, allow_redirects=False, verify=False)
     response.raise_for_status()
+    os.makedirs(folder, exist_ok=True)
+    file_path = f"{folder}/{filename}.txt"
+    with open(file_path, "w", encoding='utf-8') as book:
+        book.write(response.text)
+    return file_path
 
 
 def download_image(url, filename, folder):
@@ -29,10 +29,9 @@ def download_image(url, filename, folder):
     response = requests.get(url, allow_redirects=False, verify=False)
     response.raise_for_status()
     os.makedirs(folder, exist_ok=True)
-    path = f"{folder}/{filename}"
-    with open(path, "wb") as image:
+    file_path = f"{folder}/{filename}"
+    with open(file_path, "wb") as image:
         image.write(response.content)
-    return path
 
 
 parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
@@ -92,6 +91,7 @@ for page_number in range(start_page, end_page + 1):
     response = requests.get(page_url, allow_redirects=False)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
+    return file_path
 
         book_card_selector = 'table.d_book'
         book_card = soup.select(book_card_selector)
