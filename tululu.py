@@ -14,7 +14,6 @@ template_url = 'http://tululu.org'
 def download_txt(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'books/'))
-    if response.encoding == 'utf-8':
         os.makedirs(folder, exist_ok=True)
         path = f"{folder}/{filename}.txt"
         with open(path, "w", encoding='utf-8') as book:
@@ -94,7 +93,6 @@ for page_number in range(start_page, end_page + 1):
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
 
-    if response.status_code != 302:
         book_card_selector = 'table.d_book'
         book_card = soup.select(book_card_selector)
         for a in book_card:
