@@ -105,7 +105,9 @@ if args.json_path:
 
 
 def main():
+    requests.packages.urllib3.disable_warnings()
     books_info = []
+    template_downloading_txt = 'https://tululu.org/txt.php?id={book_id}'
     for page_number in range(start_page, end_page + 1):
         page_url = f'https://tululu.org/l55/{page_number}/'
         response = requests.get(page_url, allow_redirects=False, verify=False)
@@ -120,11 +122,7 @@ def main():
             response = requests.get(book_link, allow_redirects=False, verify=False)
             response.raise_for_status()
             book_soup = BeautifulSoup(response.text, 'lxml')
-            book_selector = 'table.d_book a'
-            book = book_soup.select(book_selector)
-            for id in book:
-                if 'txt' in id['href']:
-                    url_txt = urljoin(TEMPLATE_URL, id['href'])
+            url_txt = template_downloading_txt.format(book_id=book_id[2:-1])
 
             title, author = pull_title_and_author(book_soup)
 
@@ -166,7 +164,7 @@ def main():
     else:
         json_file_path = sanitize_filepath(os.path.join(dest_folder, 'books_info.json'))
 
-    with open(json_file_path, "w") as json_file:
+    with open(json_file_path, "w", encoding='utf-8') as json_file:
         json.dump(books_info, json_file, ensure_ascii=False)
 
 
