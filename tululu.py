@@ -142,17 +142,15 @@ def main():
             for genre in genres:
                 genre_list.append(genre.text)
 
-            if args.skip_txt:
-                book_path = ''
-            else:
+            book_path = ''
+            if not args.skip_txt:
                 try:
                     book_path = download_txt(url_txt, title, dest_folder)
                 except requests.exceptions.HTTPError:
                     print(response.status_code)
 
-            if args.skip_imgs:
-                image_path = ''
-            else:
+            image_path = ''
+            if not args.image_path:
                 try:
                     image_path = download_image(book_image_link, image_name[-1], dest_folder)
                 except requests.exceptions.HTTPError:
