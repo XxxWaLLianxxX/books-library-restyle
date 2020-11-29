@@ -130,17 +130,12 @@ def main():
 
             book_image_link, image_name = pull_book_image(book_soup, page_url)
 
-            comments = []
             texts = book_soup.select('.texts')
-            for comment in texts:
-                if comment:
-                    comments.append(comment.select_one('.black').text)
+            comments = [comment.select_one('.black').text for comment in texts if comment]
 
-            genre_list = []
             genres_selector = 'body div[id=content] span.d_book a'
             genres = book_soup.select(genres_selector)
-            for genre in genres:
-                genre_list.append(genre.text)
+            genre_list = [genre.text for genre in genres]
 
             book_path = ''
             if not args.skip_txt:
@@ -150,7 +145,7 @@ def main():
                     print(response.status_code)
 
             image_path = ''
-            if not args.image_path:
+            if not args.skip_imgs:
                 try:
                     image_path = download_image(book_image_link, image_name[-1], dest_folder)
                 except requests.exceptions.HTTPError:
