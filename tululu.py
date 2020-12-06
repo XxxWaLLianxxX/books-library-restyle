@@ -111,7 +111,8 @@ def main():
     for page_number in range(start_page, end_page + 1):
         page_url = f'https://tululu.org/l55/{page_number}/'
         response = requests.get(page_url, allow_redirects=False, verify=False)
-        response.raise_for_status()
+        if response.status_code != 200:
+            continue
         page_soup = BeautifulSoup(response.text, 'lxml')
 
         book_card_selector = 'table.d_book'
@@ -120,7 +121,8 @@ def main():
             book_id = book_card.select_one('a')['href']
             book_link = urljoin(page_url, book_id)
             response = requests.get(book_link, allow_redirects=False, verify=False)
-            response.raise_for_status()
+            if response.status_code != 200:
+                continue
             book_soup = BeautifulSoup(response.text, 'lxml')
             url_txt = template_downloading_txt.format(book_id=book_id[2:-1])
 
@@ -140,14 +142,14 @@ def main():
                 try:
                     book_path = download_txt(url_txt, title, dest_folder)
                 except requests.exceptions.HTTPError:
-                    print(response.status_code)
+                    print('Ссылка отсутствует')
 
             image_path = ''
             if not args.skip_imgs:
                 try:
                     image_path = download_image(book_image_link, image_name[-1], dest_folder)
                 except requests.exceptions.HTTPError:
-                    print(response.status_code)
+                    print('Ссылка отсутствует')
 
             book_info = {
                 'title': title,
