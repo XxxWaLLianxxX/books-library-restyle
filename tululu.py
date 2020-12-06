@@ -5,6 +5,7 @@ import argparse
 import requests
 
 from bs4 import BeautifulSoup
+from datetime import datetime
 from pathvalidate import sanitize_filename, sanitize_filepath
 from urllib.parse import urljoin
 
@@ -12,24 +13,26 @@ TEMPLATE_URL = 'https://tululu.org'
 
 
 def download_txt(url, filename, folder):
+    unique_key = str(datetime.now().timestamp()).replace('.', '')
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'books/'))
     response = requests.get(url, allow_redirects=False, verify=False)
     response.raise_for_status()
     os.makedirs(folder, exist_ok=True)
-    file_path = f"{folder}/{filename}.txt"
+    file_path = "{folder}/{filename}{unique_key}.txt".format(folder=folder, filename=filename, unique_key=unique_key)
     with open(file_path, "w", encoding='utf-8') as book:
         book.write(response.text)
     return file_path
 
 
 def download_image(url, filename, folder):
+    unique_key = str(datetime.now().timestamp()).replace('.', '')
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'images/'))
     response = requests.get(url, allow_redirects=False, verify=False)
     response.raise_for_status()
     os.makedirs(folder, exist_ok=True)
-    file_path = f"{folder}/{filename}"
+    file_path = "{folder}/{unique_key}{filename}".format(folder=folder, unique_key=unique_key, filename=filename)
     with open(file_path, "wb") as image:
         image.write(response.content)
     return file_path
