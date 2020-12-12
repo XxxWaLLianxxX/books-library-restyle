@@ -55,62 +55,66 @@ def pull_book_image(book_soup, page_url):
     return book_image_link, image_name
 
 
-parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
+def get_cmd_args():
+    parser = argparse.ArgumentParser(description="Программа скачивает книги с tululu.org")
+    parser.add_argument(
+        "-sp",
+        "--start_page",
+        help="Номер первой скачиваемой страницы",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "-ep",
+        "--end_page",
+        help="Номер последней скачиваемой страницы",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "-si",
+        "--skip_imgs",
+        help="Не скачивать картинки",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-st",
+        "--skip_txt",
+        help="Не скачивать книги",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-df",
+        "--dest_folder",
+        help="Путь к каталогу с результатами парсинга",
+        default="library/",
+    )
+    parser.add_argument(
+        "-jp",
+        "--json_path",
+        help="Указать свой путь к *.json файлу с результатами",
+    )
+    args = parser.parse_args()
+    return args
 
-parser.add_argument(
-    "-sp",
-    "--start_page",
-    help="Номер первой скачиваемой страницы",
-    type=int,
-    default=1,
-)
-parser.add_argument(
-    "-ep",
-    "--end_page",
-    help="Номер последней скачиваемой страницы",
-    type=int,
-    default=1,
-)
-parser.add_argument(
-    "-si",
-    "--skip_imgs",
-    help="Не скачивать картинки",
-    action="store_true",
-)
-parser.add_argument(
-    "-st",
-    "--skip_txt",
-    help="Не скачивать книги",
-    action="store_true",
-)
-parser.add_argument(
-    "-df",
-    "--dest_folder",
-    help="Путь к каталогу с результатами парсинга",
-    default="library/",
-)
-parser.add_argument(
-    "-jp",
-    "--json_path",
-    help="Указать свой путь к *.json файлу с результатами",
-)
 
-args = parser.parse_args()
-start_page = args.start_page
-end_page = args.end_page
+args = get_cmd_args()
 dest_folder = args.dest_folder
-json_path = args.json_path
-
 os.makedirs(dest_folder, exist_ok=True)
 
+json_path = args.json_path
 if args.json_path:
     os.makedirs(json_path, exist_ok=True)
 
 
 def main():
     requests.packages.urllib3.disable_warnings()
+
     books_info = []
     template_downloading_txt = 'https://tululu.org/txt.php?id={book_id}'
+
+    start_page = args.start_page
+    end_page = args.end_page
     for page_number in range(start_page, end_page + 1):
         page_url = f'https://tululu.org/l55/{page_number}/'
         response = requests.get(page_url, allow_redirects=False, verify=False)
