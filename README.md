@@ -15,15 +15,15 @@ pip install -r requirements.txt
 В проекте имеются еще аргументы, чтобы посмотреть их, введите `--help` или `-h` в консоль.
 ### Примеры запуска
 ```
-tululu.py --start_page 2 --end_page 4
+python tululu.py --start_page 2 --end_page 4
 ```
 Тут мы указали, что начать скачивание книг надо на второй странице, а закончить на четвертой.
 ```
-tululu.py --end_page 3 --skip_txt
+python tululu.py --end_page 3 --skip_txt
 ```
 А здесь мы написали, что закончить скачивание надо на третьей странице, и что не надо скачивать книги, только обложки.
 ```
-tululu.py --dest_folder input --json_path json
+python tululu.py --dest_folder input --json_path json
 ```
 А тут, например, мы указали, что папка с книгами и обложками будет называться 'input', а с json файлом 'json'.
 ### Цель проекта
