@@ -106,7 +106,8 @@ json_path = args.json_path
 def main():
     requests.packages.urllib3.disable_warnings()
 
-    os.makedirs(dest_folder, exist_ok=True)
+    if args.dest_folder:
+        os.makedirs(dest_folder, exist_ok=True)
     if args.json_path:
         os.makedirs(json_path, exist_ok=True)
 
