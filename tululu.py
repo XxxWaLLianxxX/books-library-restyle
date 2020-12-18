@@ -112,7 +112,7 @@ def main():
         os.makedirs(json_path, exist_ok=True)
 
     books_info = []
-    template_downloading_txt = 'https://tululu.org/txt.php?id={book_id}'
+    template_downloading_book_url = 'https://tululu.org/txt.php?id={book_id}'
 
     start_page = args.start_page
     end_page = args.end_page
@@ -126,13 +126,13 @@ def main():
         book_card_selector = 'table.d_book'
         book_cards = page_soup.select(book_card_selector)
         for book_card in book_cards:
-            book_id = book_card.select_one('a')['href']
-            book_link = urljoin(page_url, book_id)
-            response = requests.get(book_link, allow_redirects=False, verify=False)
+            book_href = book_card.select_one('a')['href']
+            book_abs_link = urljoin(page_url, book_href)
+            response = requests.get(book_abs_link, allow_redirects=False, verify=False)
             if response.status_code != 200:
                 continue
             book_soup = BeautifulSoup(response.text, 'lxml')
-            url_txt = template_downloading_txt.format(book_id=book_id[2:-1])
+            downloading_book_url = template_downloading_book_url.format(book_id=book_href[2:-1])
 
             title, author = pull_title_and_author(book_soup)
 
@@ -148,7 +148,7 @@ def main():
             book_path = ''
             if not args.skip_txt:
                 try:
-                    book_path = download_txt(url_txt, title, dest_folder)
+                    book_path = download_txt(downloading_book_url, title, dest_folder)
                 except requests.exceptions.HTTPError:
                     print('Ссылка отсутствует')
 
