@@ -100,15 +100,15 @@ def get_cmd_args():
 
 args = get_cmd_args()
 dest_folder = args.dest_folder
-os.makedirs(dest_folder, exist_ok=True)
-
 json_path = args.json_path
-if args.json_path:
-    os.makedirs(json_path, exist_ok=True)
 
 
 def main():
     requests.packages.urllib3.disable_warnings()
+
+    os.makedirs(dest_folder, exist_ok=True)
+    if args.json_path:
+        os.makedirs(json_path, exist_ok=True)
 
     books_info = []
     template_downloading_txt = 'https://tululu.org/txt.php?id={book_id}'
