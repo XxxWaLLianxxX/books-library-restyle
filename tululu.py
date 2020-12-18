@@ -150,14 +150,14 @@ def main():
                 try:
                     book_path = download_txt(downloading_book_url, title, dest_folder)
                 except requests.exceptions.HTTPError:
-                    print('Ссылка отсутствует')
+                    print('Не удалось скачать книгу')
 
             image_path = ''
             if not args.skip_imgs:
                 try:
                     image_path = download_image(book_image_link, image_name[-1], dest_folder)
                 except requests.exceptions.HTTPError:
-                    print('Ссылка отсутствует')
+                    print('Не удалось скачать обложку книги')
 
             book_info = {
                 'title': title,
