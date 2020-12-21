@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import logging
+import re
 
 import argparse
 import requests
@@ -140,7 +141,7 @@ def main():
                 logging.warning('Страница {} не найдена'.format(page_url))
                 continue
             book_soup = BeautifulSoup(response.text, 'lxml')
-            downloading_book_url = template_downloading_book_url.format(book_id=book_href[2:-1])
+            downloading_book_url = template_downloading_book_url.format(book_id=re.search(r'\d+', book_href).group(0))
 
             title, author = pull_title_and_author(book_soup)
 
