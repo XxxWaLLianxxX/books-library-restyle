@@ -1,7 +1,6 @@
 import json
-import os
-import sys
 import logging
+import os
 import re
 
 import argparse
@@ -20,7 +19,8 @@ def download_txt(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'books/'))
     response = requests.get(url, allow_redirects=False, verify=False)
-    response.raise_for_status()
+    if response.status_code != 200:
+        raise requests.exceptions.HTTPError
     os.makedirs(folder, exist_ok=True)
     file_path = "{folder}/{filename}{unique_key}.txt".format(folder=folder, filename=filename, unique_key=unique_key)
     with open(file_path, "w", encoding='utf-8') as book:
@@ -33,7 +33,8 @@ def download_image(url, filename, folder):
     filename = sanitize_filename(filename)
     folder = sanitize_filepath(os.path.join(folder, 'images/'))
     response = requests.get(url, allow_redirects=False, verify=False)
-    response.raise_for_status()
+    if response.status_code != 200:
+        raise requests.exceptions.HTTPError
     os.makedirs(folder, exist_ok=True)
     file_path = "{folder}/{unique_key}{filename}".format(folder=folder, unique_key=unique_key, filename=filename)
     with open(file_path, "wb") as image:
