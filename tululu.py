@@ -1,5 +1,7 @@
 import json
 import os
+import sys
+import logging
 
 import argparse
 import requests
@@ -118,11 +120,16 @@ def main():
     end_page = args.end_page
     for page_number in range(start_page, end_page + 1):
         page_url = f'https://tululu.org/l55/{page_number}/'
-        response = requests.get(page_url, allow_redirects=False, verify=False)
-        if response.status_code != 200:
-            continue
-        page_soup = BeautifulSoup(response.text, 'lxml')
+        try:
+            response = requests.get(page_url, allow_redirects=False, verify=False)
+        except requests.exceptions.ConnectionError:
+            logging.error('Неправильная ссылка')
 
+        if response.status_code != 200:
+            logging.warning('Страница {} не найдена'.format(page_url))
+            continue
+
+        page_soup = BeautifulSoup(response.text, 'lxml')
         book_card_selector = 'table.d_book'
         book_cards = page_soup.select(book_card_selector)
         for book_card in book_cards:
@@ -130,6 +137,7 @@ def main():
             book_abs_link = urljoin(page_url, book_href)
             response = requests.get(book_abs_link, allow_redirects=False, verify=False)
             if response.status_code != 200:
+                logging.warning('Страница {} не найдена'.format(page_url))
                 continue
             book_soup = BeautifulSoup(response.text, 'lxml')
             downloading_book_url = template_downloading_book_url.format(book_id=book_href[2:-1])
@@ -150,14 +158,14 @@ def main():
                 try:
                     book_path = download_txt(downloading_book_url, title, dest_folder)
                 except requests.exceptions.HTTPError:
-                    print('Не удалось скачать книгу')
+                    logging.error('Не удалось скачать книгу')
 
             image_path = ''
             if not args.skip_imgs:
                 try:
                     image_path = download_image(book_image_link, image_name[-1], dest_folder)
                 except requests.exceptions.HTTPError:
-                    print('Не удалось скачать обложку книги')
+                    logging.error('Не удалось скачать обложку книги')
 
             book_info = {
                 'title': title,
