@@ -4,7 +4,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
 
 
-def rebuild():
+def on_reload():
     with open('./library/books_info.json', 'r', encoding='utf-8') as my_file:
         books_info = my_file.read()
     books_info = json.loads(books_info)
@@ -23,10 +23,10 @@ def rebuild():
 
 
 def main():
-    rebuild()
+    on_reload()
 
     server = Server()
-    server.watch('./template.html', rebuild)
+    server.watch('./template.html', on_reload)
     server.serve(root='.')
 
 
