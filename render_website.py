@@ -1,23 +1,34 @@
 import json
 
-from http.server import HTTPServer, SimpleHTTPRequestHandler
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from livereload import Server
 
-with open('./library/books_info.json', 'r', encoding='utf-8') as my_file:
-    books_info = my_file.read()
-books_info = json.loads(books_info)
 
-env = Environment(
-    loader=FileSystemLoader('.'),
-    autoescape=select_autoescape(['html', 'xml'])
-)
+def rebuild():
+    with open('./library/books_info.json', 'r', encoding='utf-8') as my_file:
+        books_info = my_file.read()
+    books_info = json.loads(books_info)
 
-template = env.get_template('template.html')
+    env = Environment(
+        loader=FileSystemLoader('.'),
+        autoescape=select_autoescape(['html', 'xml'])
+    )
 
-rendered_page = template.render(books_info=books_info)
+    template = env.get_template('template.html')
 
-with open('index.html', 'w', encoding="utf8") as file:
-    file.write(rendered_page)
+    rendered_page = template.render(books_info=books_info)
 
-server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
-server.serve_forever()
+    with open('index.html', 'w', encoding="utf8") as file:
+        file.write(rendered_page)
+
+
+def main():
+    rebuild()
+
+    server = Server()
+    server.watch('./template.html', rebuild)
+    server.serve(root='.')
+
+
+if __name__ == '__main__':
+    main()
