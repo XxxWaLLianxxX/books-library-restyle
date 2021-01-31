@@ -26,6 +26,8 @@ def on_reload():
     for page_number, books_page in enumerate(books_pages, 1):
         rendered_page = template.render(
             books_page=books_page,
+            page_count=len(books_pages),
+            current_page=page_number,
         )
         with open(f'pages/index{page_number}.html', 'w', encoding='utf8') as file:
             file.write(rendered_page)
